@@ -32,9 +32,9 @@ def read_map(file_path):
 def step_cost(map_data, current_pos, new_pos):
 
     current_elev = int(map_data[current_pos[0]][current_pos[1]]) if map_data[current_pos[0]][current_pos[1]] != 'X' else 0
-    next_elev = int(map_data[next_pos[0]][next_pos[1]]) if map_data[next_pos[0]][next_pos[1]] != 'X' else 0
+    next_elev = int(map_data[new_pos[0]][new_pos[1]]) if map_data[new_pos[0]][new_pos[1]] != 'X' else 0
 
-    elev_diff = next_elev - current_elev
+    elev_diff = new_elev - current_elev
     return 1 + max(0, elev_diff) 
 
 
