@@ -7,6 +7,8 @@ from heapq import heappop, heappush
 STUDENT_ID = 'a1851614'
 DEGREE = 'UG'
 
+
+# Had to ensuure correct order as gooing down before up etc caused issues in test cases. 
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # UDLR
 
 
@@ -23,12 +25,10 @@ def parse_map(path):
     grid = [line.split() for line in lines[3:]]
     return rows, cols, start, end, grid
 
+
 def elevation_cost(curr, nxt):
     diff = int(nxt) - int(curr)
     return 1 + max(0, diff)
-
-
-
 
 
 
@@ -38,21 +38,22 @@ def heuristic(a, b, htype):
 
 
 
-
-
-
 def bfs(rows, cols, start, end, grid):
 
-    queue = deque([(start, [start])])
-    visited = set()
+    queue = deque([(start, [start])]) # ( (x,y), path )
+    visited = set() 
+
+    # to track visits and first/last visit order
     visits = [[0]*cols for _ in range(rows)]
     first = [[None]*cols for _ in range(rows)]
     last = [[None]*cols for _ in range(rows)]
-    order = 1
+    order = 1 # to track order of visits
 
     while queue:
+        
 
         (x, y), path = queue.popleft()
+
 
         if (x, y) in visited:
             continue
@@ -84,12 +85,12 @@ def bfs(rows, cols, start, end, grid):
 def ucs(rows, cols, start, end, grid):
 
     heap = [(0, 0, start, [start])]  # (cost, tie-breaker, position, path)
-    cost_so_far = {start: 0}
+    cost_so_far = {start: 0} # to track cost to reach each cell. allows better track reconsutruction due to test case issues. 
     visits = [[0 for _ in range(cols)] for _ in range(rows)]
     first = [[None for _ in range(cols)] for _ in range(rows)]
     last = [[None for _ in range(cols)] for _ in range(rows)]
 
-    order = 1
+    order = 1 # to track order of visits. Was getting errors with heapq when using cost as tie-breaker
     counter = 0  # used to break ties. Was getting errors with heapq when using cost as tie-breaker
 
     while heap:
@@ -208,12 +209,8 @@ def main():
     elif algo == 'ucs':
         path, visits, first, last = ucs(rows, cols, start, end, grid)
     elif algo == 'astar':
-        if heuristic_type not in ('manhattan', 'euclidean'):
-            print("Please provide a valid heuristic: manhattan or euclidean")
-            return
         path, visits, first, last = astar(rows, cols, start, end, grid, heuristic_type)
     else:
-        print("Unsupported algorithm")
         return
 
 
