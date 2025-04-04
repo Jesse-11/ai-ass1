@@ -41,7 +41,7 @@ def calc_heuristic(current_pos, goal_pos, heuristic):
 
     if heuristic == 'euclidean':
         return math.sqrt((current_pos[0] - goal_pos[0])**2 + (current_pos[1] - goal_pos[1])**2)
-    else # if heuristic == manhattan
+    else: # if heuristic == manhattan
         return abs(current_pos[0] - goal_pos[0]) + abs(current_pos[1] - goal_pos[1])
 
 
@@ -143,11 +143,7 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
                     new_state = (new_row, new_col)
                     
                     # Calculate cost
-                    current_elevation = int(map_data[state[0]][state[1]]) if map_data[state[0]][state[1]] != 'X' else 0
-                    new_elevation = int(map_data[new_row][new_col]) if map_data[new_row][new_col] != 'X' else 0
-                    
-                    elevation_diff = new_elevation - current_elevation
-                    step_cost = 1 + max(0, elevation_diff)  # 1 + elevation diff if going uphill, otherwise just 1
+                    step_cost = step_cost(map_data, state, new_state)
                     new_cost = cost + step_cost
                     
                     if algorithm == 'bfs':
@@ -156,7 +152,7 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
                         # For UCS, priority is the path cost
                         heapq.heappush(fringe, (new_cost, visit_order, new_state, state, new_cost))
                     elif algorithm == 'astar':
-                        h_cost = calculate_heuristic(new_state, end, heuristic)
+                        h_cost = calc_heuristic(new_state, end, heuristic)
                         f_cost = new_cost + h_cost
                         heapq.heappush(fringe, (f_cost, visit_order, new_state, state, new_cost))
     
