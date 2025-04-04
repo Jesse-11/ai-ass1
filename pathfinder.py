@@ -3,8 +3,8 @@ import math
 import heapq
 
 # Constants
-STUDENT_ID = 'a1234567'  # Replace with your actual student ID
-DEGREE = 'UG'  # Replace with 'PG' if you're a postgraduate student
+STUDENT_ID = 'a1851614'  
+DEGREE = 'UG'  
 
 def read_map(file_path):
 
@@ -28,6 +28,7 @@ def read_map(file_path):
 
 
 
+
 def step_cost(map_data, current_pos, new_pos):
 
     current_elev = int(map_data[current_pos[0]][current_pos[1]]) if map_data[current_pos[0]][current_pos[1]] != 'X' else 0
@@ -43,6 +44,7 @@ def calc_heuristic(current_pos, goal_pos, heuristic):
         return math.sqrt((current_pos[0] - goal_pos[0])**2 + (current_pos[1] - goal_pos[1])**2)
     else: # if heuristic == manhattan
         return abs(current_pos[0] - goal_pos[0]) + abs(current_pos[1] - goal_pos[1])
+
 
 
 
