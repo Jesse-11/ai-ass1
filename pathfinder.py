@@ -1,13 +1,13 @@
 import sys
 import math
 import heapq
+from collections import deque
 
 # Constants
 STUDENT_ID = 'a1851614'  
 DEGREE = 'UG'  
 
 def read_map(file_path):
-
     with open(file_path, 'r') as f:
         lines = f.readlines()
         
@@ -30,16 +30,18 @@ def read_map(file_path):
 
 
 def step_cost(map_data, current_pos, new_pos):
-
     current_elev = int(map_data[current_pos[0]][current_pos[1]]) if map_data[current_pos[0]][current_pos[1]] != 'X' else 0
-    next_elev = int(map_data[new_pos[0]][new_pos[1]]) if map_data[new_pos[0]][new_pos[1]] != 'X' else 0
-
+    new_elev = int(map_data[new_pos[0]][new_pos[1]]) if map_data[new_pos[0]][new_pos[1]] != 'X' else 0
     elev_diff = new_elev - current_elev
-    return 1 + max(0, elev_diff) 
+    return 1 + max(0, elev_diff)
+
+
+
+
+
 
 
 def calc_heuristic(current_pos, goal_pos, heuristic):
-
     if heuristic == 'euclidean':
         return math.sqrt((current_pos[0] - goal_pos[0])**2 + (current_pos[1] - goal_pos[1])**2)
     else: # if heuristic == manhattan
@@ -52,73 +54,73 @@ def calc_heuristic(current_pos, goal_pos, heuristic):
 
 
 
+
 def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
 
-    # setup of tracking ds
+    # Setup tracking ds
     visit_count = [[0 for _ in range(cols)] for _ in range(rows)]
     first_visit = [[0 for _ in range(cols)] for _ in range(rows)]
     last_visit = [[0 for _ in range(cols)] for _ in range(rows)]
     visit_order = 0
     
+    # used to reconstruct path
+    parent = {}
+    
 
+
+
+    if algorithm == 'bfs':
+        fringe = deque()
+        # [state, cost]
+        fringe.append((start, 0))
+    else:  # UCS or A*
+        fringe = []
+        # [(cost, visit_order, state, cost)]
+        heapq.heappush(fringe, (0, visit_order, start, 0))
+    
+
+    # Used to track visited states/nodes
     closed = set()
     
 
 
 
 
-    if algorithm == 'bfs':
-
-        """
-        [state, parent, cost]
-        """
-        fringe = [(start, None, 0)]
-    else:  # UCS or A*
-        """	
-        [priority, visit_order, state, parent, cost]
-        """
-        fringe = [(0, 0, start, None, 0)]
-    
-
-
-
     while fringe:
         if algorithm == 'bfs':
-            state, parent, cost = fringe.pop(0)
+            state, cost = fringe.popleft()
         else:  # UCS or A*
-            _, _, state, parent, cost = heapq.heappop(fringe)
+            _, _, state, cost = heapq.heappop(fringe)
         
-        # updating tracking ds for visit order and count. 
+
+
+
+        # Updating tracking ds
         row, col = state
         visit_order += 1
         visit_count[row][col] += 1
         
-
-        # Updating tracking ds for first and last visits for nodes. 
         if first_visit[row][col] == 0:
             first_visit[row][col] = visit_order
         last_visit[row][col] = visit_order
         
 
 
+
+
+
+
+        
         if state == end:
-            
+
+            # Reconstruct path
             path = []
-            current_state = state
-            
-            # from goal to start poosition
-            while current_state is not None:
-                path.append(current_state)
-                current_state = parent
-                
-                # Find the parant
-                if current_state is not None:
- 
-                    for closed_state, closed_parent, _ in [(s, p, c) for (s, p, c) in closed if s == current_state]:
-                        parent = closed_parent
-                        break
-            
-            path.reverse()  # must reverse to switch from goal to start - strart to goal
+            current = end
+            while current != start:
+                path.append(current)
+                current = parent[current]
+            path.append(start)
+            path.reverse()
             return path, visit_count, first_visit, last_visit
         
 
@@ -126,37 +128,38 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
 
 
 
-        # If state is not in closed set
+
+        # Check if state is already visited
         if state not in closed:
-  
-            closed.add((state, parent, cost))
+            closed.add(state)
             
             directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
             
+
+
             for direction in directions:
                 new_row = state[0] + direction[0]
                 new_col = state[1] + direction[1]
                 
-                # make sure new pos is valid. Hence not an obstacle or out of bounds. 
                 if (0 <= new_row < rows and 
                     0 <= new_col < cols and 
                     map_data[new_row][new_col] != 'X'):
                     
                     new_state = (new_row, new_col)
+                    step_cost_val = step_cost(map_data, state, new_state)
+                    new_cost = cost + step_cost_val
                     
-                    # Calculate cost
-                    step_cost = step_cost(map_data, state, new_state)
-                    new_cost = cost + step_cost
+                    if new_state not in parent or new_cost < cost:
+                        parent[new_state] = state
                     
                     if algorithm == 'bfs':
-                        fringe.append((new_state, state, new_cost))
+                        fringe.append((new_state, new_cost))
                     elif algorithm == 'ucs':
-                        # For UCS, priority is the path cost
-                        heapq.heappush(fringe, (new_cost, visit_order, new_state, state, new_cost))
+                        heapq.heappush(fringe, (new_cost, visit_order, new_state, new_cost))
                     elif algorithm == 'astar':
                         h_cost = calc_heuristic(new_state, end, heuristic)
                         f_cost = new_cost + h_cost
-                        heapq.heappush(fringe, (f_cost, visit_order, new_state, state, new_cost))
+                        heapq.heappush(fringe, (f_cost, visit_order, new_state, new_cost))
     
     # No path found
     return None, visit_count, first_visit, last_visit
@@ -166,14 +169,12 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
 
 
 
-
-
 def print_output(map_data, path, visit_count, first_visit, last_visit, mode):
-
     rows, cols = len(map_data), len(map_data[0])
     
 
-    # if a path is not found
+
+    # No path found
     if path is None:
         if mode == 'debug':
             print("path:")
@@ -211,21 +212,17 @@ def print_output(map_data, path, visit_count, first_visit, last_visit, mode):
                     else:
                         print(f'{last_visit[i][j]:3d}', end='')
                 print()
-        else:  # release mode
+        else:
             print("null")
         return
     
-
-
-
-
-
-    # Create path matrix
+    # Create matrix that displays our path
     path_matrix = [[False for _ in range(cols)] for _ in range(rows)]
     for pos in path:
         path_matrix[pos[0]][pos[1]] = True
     
-    # if a path is found, print in the different modes. 
+
+    # Print path based on mode
     if mode == 'debug':
         print("path:")
     for i in range(rows):
@@ -237,7 +234,6 @@ def print_output(map_data, path, visit_count, first_visit, last_visit, mode):
         print()
     
     if mode == 'debug':
-        # Print visit count
         print("#visits:")
         for i in range(rows):
             for j in range(cols):
@@ -249,7 +245,6 @@ def print_output(map_data, path, visit_count, first_visit, last_visit, mode):
                     print(visit_count[i][j], end=' ')
             print()
         
-        # first visit printing
         print("first visit:")
         for i in range(rows):
             for j in range(cols):
@@ -261,7 +256,6 @@ def print_output(map_data, path, visit_count, first_visit, last_visit, mode):
                     print(f'{first_visit[i][j]:3d}', end='')
             print()
         
-        # last visit printing
         print("last visit:")
         for i in range(rows):
             for j in range(cols):
@@ -275,12 +269,7 @@ def print_output(map_data, path, visit_count, first_visit, last_visit, mode):
 
 
 
-
-# Main function currently on debug. Working on testing my own test cases.
-"""
 def main():
-
-    
     mode = sys.argv[1]
     map_file = sys.argv[2]
     algorithm = sys.argv[3]
@@ -296,6 +285,4 @@ def main():
     print_output(map_data, path, visit_count, first_visit, last_visit, mode)
 
 if __name__ == "__main__":
-    main()
-
-"""
+    main() 
