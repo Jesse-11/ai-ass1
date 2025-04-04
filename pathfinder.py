@@ -29,8 +29,12 @@ def read_map(file_path):
 
 
 def step_cost(map_data, current_pos, new_pos):
-    current_elev = int(map_data[current_pos[0]][current_pos[1]]) if map_data[current_pos[0]][current_pos[1]] != 'X' else 0
-    new_elev = int(map_data[new_pos[0]][new_pos[1]]) if map_data[new_pos[0]][new_pos[1]] != 'X' else 0
+    # check if state is a wall, had issues with this not calculationg cost correct. Forved to be unreasoble in cost. 
+    if map_data[new_pos[0]][new_pos[1]] == 'X':
+        return float('inf')
+
+    current_elev = int(map_data[current_pos[0]][current_pos[1]])
+    new_elev = int(map_data[new_pos[0]][new_pos[1]])
     elev_diff = new_elev - current_elev
     return 1 + max(0, elev_diff)
 
@@ -50,54 +54,35 @@ def calc_heuristic(current_pos, goal_pos, heuristic):
 
 
 def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
-    # Setup tracking data structures
     visit_count = [[0 for _ in range(cols)] for _ in range(rows)]
     first_visit = [[0 for _ in range(cols)] for _ in range(rows)]
     last_visit = [[0 for _ in range(cols)] for _ in range(rows)]
     visit_order = 0
     
-
-
-    # basic ds setup 
     parent = {}
     cost = {}
     parent[start] = None
     cost[start] = 0
     
-
-
-
-
-
     if algorithm == 'bfs':
         fringe = deque([start])
-    else:  # UCS or A*
+    else:
         fringe = []
         initial_cost = 0
         if algorithm == 'astar':
             initial_cost += calc_heuristic(start, end, heuristic)
         heapq.heappush(fringe, (initial_cost, visit_order, start))
     
-
-    # used to track visited nodes
     closed = set()
     
-
-
-
-
     while fringe:
         if algorithm == 'bfs':
             state = fringe.popleft()
             current_cost = cost[state]
-        else:  # UCS or A*
+        else:
             current_f_cost, _, state = heapq.heappop(fringe)
             current_cost = cost[state]
         
-
-
-
-        # used to track visit data
         row, col = state
         visit_order += 1
         visit_count[row][col] += 1
@@ -105,12 +90,7 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
             first_visit[row][col] = visit_order
         last_visit[row][col] = visit_order
         
-
-
-
-
         if state == end:
-            # Reconstruct path
             path = []
             current = end
             while current is not None:
@@ -119,14 +99,9 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
             path.reverse()
             return path, visit_count, first_visit, last_visit
         
-
-
-
-
         if state not in closed:
             closed.add(state)
             
-            # Explore neighbors in order: Up, Down, Left, Right
             directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
             
             for direction in directions:
@@ -134,11 +109,18 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
                 new_col = state[1] + direction[1]
                 
                 if (0 <= new_row < rows and 
-                    0 <= new_col < cols and 
-                    map_data[new_row][new_col] != 'X'):
+                    0 <= new_col < cols):
                     
+                    if map_data[new_row][new_col] == 'X':
+                        continue
+                        
                     new_state = (new_row, new_col)
-                    new_cost = current_cost + step_cost(map_data, state, new_state)
+                    step = step_cost(map_data, state, new_state)
+                    
+                    if algorithm == 'bfs':
+                        new_cost = current_cost + 1
+                    else:
+                        new_cost = current_cost + step
                     
                     if new_state not in cost or new_cost < cost[new_state]:
                         cost[new_state] = new_cost
@@ -152,7 +134,6 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
                             f_cost = new_cost + calc_heuristic(new_state, end, heuristic)
                             heapq.heappush(fringe, (f_cost, visit_order, new_state))
     
-    # No path found
     return None, visit_count, first_visit, last_visit
 
 
