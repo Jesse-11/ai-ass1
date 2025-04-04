@@ -23,8 +23,8 @@ def read_map(file_path):
 
 
 
-def elevation_cost(curr, next):
-    diff = int(next) - int(curr)
+def elevation_cost(curr, nxt):
+    diff = int(nxt) - int(curr)
     return 1 + max(0, diff)
 
 
