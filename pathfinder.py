@@ -159,7 +159,7 @@ def main():
 
     mode, map_file, algo = sys.argv[1:4]
     heuristic_type = sys.argv[4] if len(sys.argv) > 4 else None
-    rows, cols, start, end, grid = parse_map(map_file)
+    rows, cols, start, end, grid = read_map(map_file)
 
     if algo == 'bfs':
         path, visits, first, last = bfs(rows, cols, start, end, grid)
