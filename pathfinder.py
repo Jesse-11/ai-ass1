@@ -7,12 +7,28 @@ from heapq import heappop, heappush
 STUDENT_ID = 'a1851614'
 DEGREE = 'UG'
 
+"""
+Integrity Notice:
 
-# Had to ensuure correct order as gooing down before up etc caused issues in test cases. 
+Ai has been used as a googling tool and support in understanding the problem; but has not been used to write the code. 
+
+For exammple, one submission i had approx 4/10 test cases and in some questions achieved the correct cost eval and heuristic but a wrong path. I used an LLM to understand the problem and the algorithm, but not to write the code; it gave me some ideas of direction to go in and 
+i explored them and coded them on my own. 
+
+Also, as a student that has used C++ and not python for 3 years, i used a llm to understand the syntax, or particulary how to convert a c++ code to python. Such as line splitting, or how to use a heapq in python ( a task i know but not the syntax). alos used sites like Geeks for Geeks 
+to understand the syntax of the language; not jsut LLM.
+- An example case,  is the parse map function, which is a direct conversion of a c++ code to python, and i used an LLM to understand the syntax and requiremtns of the language.
+- My main concern is the generic naming conventions like dx, dy or nx, ny. These were conventions provided to me by the LLM as python syntax overview and i used them to understand the problem. 
+
+If you have any questions or concerns, please feel free to reach out to me. I am happy to provide more information about my process and how I approached the assignment ( including a github commit history of over 15+ versions )
+
+"""
+
+
+
+
+# DONT CHANGE ORDER DUMBASS. 
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # UDLR
-
-
-
 
 
 def parse_map(path):
@@ -40,14 +56,13 @@ def heuristic(a, b, htype):
 
 def bfs(rows, cols, start, end, grid):
 
-    queue = deque([(start, [start])]) # ( (x,y), path )
+    queue = deque([(start, [start])]) 
     visited = set() 
 
-    # to track visits and first/last visit order
     visits = [[0]*cols for _ in range(rows)]
     first = [[None]*cols for _ in range(rows)]
     last = [[None]*cols for _ in range(rows)]
-    order = 1 # to track order of visits
+    order = 1 
 
     while queue:
         
@@ -85,13 +100,13 @@ def bfs(rows, cols, start, end, grid):
 def ucs(rows, cols, start, end, grid):
 
     heap = [(0, 0, start, [start])]  # (cost, tie-breaker, position, path)
-    cost_so_far = {start: 0} # to track cost to reach each cell. allows better track reconsutruction due to test case issues. 
+    cost_so_far = {start: 0} 
     visits = [[0 for _ in range(cols)] for _ in range(rows)]
     first = [[None for _ in range(cols)] for _ in range(rows)]
     last = [[None for _ in range(cols)] for _ in range(rows)]
 
-    order = 1 # to track order of visits. Was getting errors with heapq when using cost as tie-breaker
-    counter = 0  # used to break ties. Was getting errors with heapq when using cost as tie-breaker
+    order = 1 
+    counter = 0  
 
     while heap:
         cost, _, (x, y), path = heappop(heap)
