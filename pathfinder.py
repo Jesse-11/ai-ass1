@@ -20,7 +20,8 @@ syntax). I also used sites like Geeks for Geeks etc. to understand the syntax of
 - An example case,  is the parse map function, which is a direct conversion of a c++ code to python, and i used an LLM to understand the syntax and requiremtns of the language.
 - My main concern is the generic naming conventions like dx, dy or nx, ny. These were conventions provided to me by the LLM as python syntax overview and i used them to understand the problem. 
 
-If you have any questions or concerns, please feel free to reach out to me. I am happy to provide more information about my process and how I approached the assignment ( including a github commit history of over 15+ versions )
+If you have any questions or concerns, please feel free to reach out to me. I am happy to provide more information about my process and how I approached the assignment 
+( including a github commit history and a physcial log/working document of my process).
 
 """
 
