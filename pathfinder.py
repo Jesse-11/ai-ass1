@@ -62,22 +62,37 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
     closed = set()
     
 
+
+
+
     if algorithm == 'bfs':
+
+        """
+        [state, parent, cost]
+        """
         fringe = [(start, None, 0)]
     else:  # UCS or A*
+        """	
+        [priority, visit_order, state, parent, cost]
+        """
         fringe = [(0, 0, start, None, 0)]
     
+
+
+
     while fringe:
         if algorithm == 'bfs':
             state, parent, cost = fringe.pop(0)
         else:  # UCS or A*
             _, _, state, parent, cost = heapq.heappop(fringe)
         
-        # Update visit tracking
+        # updating tracking ds for visit order and count. 
         row, col = state
         visit_order += 1
         visit_count[row][col] += 1
         
+
+        # Updating tracking ds for first and last visits for nodes. 
         if first_visit[row][col] == 0:
             first_visit[row][col] = visit_order
         last_visit[row][col] = visit_order
@@ -85,7 +100,7 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
 
 
         if state == end:
-            # path reconstruction
+            
             path = []
             current_state = state
             
@@ -104,6 +119,11 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
             path.reverse()  # must reverse to switch from goal to start - strart to goal
             return path, visit_count, first_visit, last_visit
         
+
+
+
+
+
         # If state is not in closed set
         if state not in closed:
   
@@ -142,6 +162,13 @@ def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
     
     # No path found
     return None, visit_count, first_visit, last_visit
+
+
+
+
+
+
+
 
 def print_output(map_data, path, visit_count, first_visit, last_visit, mode):
 
