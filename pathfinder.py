@@ -16,8 +16,7 @@ For exammple, one submission i had approx 4/10 test cases and in some questions 
 me some ideas of direction to go in and i explored them and coded them on my own. 
 
 Also, as a student that has used C++ and not python for 3 years, i used a llm to understand the syntax, or particulary how to convert a c++ code to python. Such as line splitting, or how to use a heapq in python ( a task i know but not the 
-syntax). I also used sites like Geeks for Geeks etc. 
-to understand the syntax of the language; not jsut LLM.
+syntax). I also used sites like Geeks for Geeks etc. to understand the syntax of the language; not jsut LLM.
 - An example case,  is the parse map function, which is a direct conversion of a c++ code to python, and i used an LLM to understand the syntax and requiremtns of the language.
 - My main concern is the generic naming conventions like dx, dy or nx, ny. These were conventions provided to me by the LLM as python syntax overview and i used them to understand the problem. 
 
