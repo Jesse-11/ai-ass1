@@ -3,10 +3,11 @@ import math
 import heapq
 from collections import deque
 
-STUDENT_ID = 'a1234567'
+STUDENT_ID = 'a1851614'
 DEGREE = 'UG'
 
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # UDLR
+
 
 
 
@@ -29,9 +30,11 @@ def elevation_cost(curr, nxt):
 
 
 
+
 def heuristic(a, b, htype):
     dx, dy = abs(a[0]-b[0]), abs(a[1]-b[1])
     return dx + dy if htype == 'manhattan' else math.sqrt(dx**2 + dy**2)
+
 
 
 
