@@ -12,10 +12,11 @@ Integrity Notice:
 
 Ai has been used as a googling tool and support in understanding the problem; but has not been used to write the code. 
 
-For exammple, one submission i had approx 4/10 test cases and in some questions achieved the correct cost eval and heuristic but a wrong path. I used an LLM to understand the problem and the algorithm, but not to write the code; it gave me some ideas of direction to go in and 
-i explored them and coded them on my own. 
+For exammple, one submission i had approx 4/10 test cases and in some questions achieved the correct cost eval and heuristic but a wrong path. I used an LLM to understand the problem and the algorithm, but not to write the code; it gave 
+me some ideas of direction to go in and i explored them and coded them on my own. 
 
-Also, as a student that has used C++ and not python for 3 years, i used a llm to understand the syntax, or particulary how to convert a c++ code to python. Such as line splitting, or how to use a heapq in python ( a task i know but not the syntax). alos used sites like Geeks for Geeks 
+Also, as a student that has used C++ and not python for 3 years, i used a llm to understand the syntax, or particulary how to convert a c++ code to python. Such as line splitting, or how to use a heapq in python ( a task i know but not the 
+syntax). I also used sites like Geeks for Geeks etc. 
 to understand the syntax of the language; not jsut LLM.
 - An example case,  is the parse map function, which is a direct conversion of a c++ code to python, and i used an LLM to understand the syntax and requiremtns of the language.
 - My main concern is the generic naming conventions like dx, dy or nx, ny. These were conventions provided to me by the LLM as python syntax overview and i used them to understand the problem. 
