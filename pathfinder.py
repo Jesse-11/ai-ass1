@@ -79,25 +79,21 @@ def bfs(rows, cols, start, end, grid):
 
 def ucs(rows, cols, start, end, grid):
 
-    heap = [(0, 0, start, [start])]
-    visited = set()
-    visits = [[0]*cols for _ in range(rows)]
-    first = [[None]*cols for _ in range(rows)]
-    last = [[None]*cols for _ in range(rows)]
+    heap = [(0, 0, start, [start])]  # (cost, tie-breaker, position, path)
+    cost_so_far = {start: 0}
+    visits = [[0 for _ in range(cols)] for _ in range(rows)]
+    first = [[None for _ in range(cols)] for _ in range(rows)]
+    last = [[None for _ in range(cols)] for _ in range(rows)]
+
     order = 1
+    counter = 0  # used to break ties. Was getting errors with heapq when using cost as tie-breaker
 
     while heap:
+        cost, _, (x, y), path = heappop(heap)
 
-        cost, counter, (x, y), path = heapq.heappop(heap)
-        if (x, y) in visited:
-            continue
-
-        visited.add((x, y))
         visits[x][y] += 1
-
         if first[x][y] is None:
             first[x][y] = order
-
         last[x][y] = order
         order += 1
 
@@ -106,9 +102,14 @@ def ucs(rows, cols, start, end, grid):
 
         for dx, dy in DIRS:
             nx, ny = x + dx, y + dy
-            if 0 <= nx < rows and 0 <= ny < cols and grid[nx][ny] != 'X' and (nx, ny) not in visited:
-                new_cost = cost + elevation_cost(grid[x][y], grid[nx][ny])
-                heapq.heappush(heap, (new_cost, order, (nx, ny), path + [(nx, ny)]))
+            if 0 <= nx < rows and 0 <= ny < cols and grid[nx][ny] != 'X':
+                step_cost = elevation_cost(grid[x][y], grid[nx][ny])
+                new_cost = cost + step_cost
+
+                if (nx, ny) not in cost_so_far or new_cost < cost_so_far[(nx, ny)]:
+                    cost_so_far[(nx, ny)] = new_cost
+                    counter += 1
+                    heappush(heap, (new_cost, counter, (nx, ny), path + [(nx, ny)]))
 
     return None, visits, first, last
 
@@ -118,25 +119,20 @@ def ucs(rows, cols, start, end, grid):
 
 def astar(rows, cols, start, end, grid, htype):
 
-    heap = [(0, 0, 0, start, [start])]
-    visited = set()
+    heap = [(heuristic(start, end, htype), 0, 0, start, [start])]
+    cost_so_far = {start: 0}
     visits = [[0]*cols for _ in range(rows)]
     first = [[None]*cols for _ in range(rows)]
     last = [[None]*cols for _ in range(rows)]
     order = 1
+    counter = 0
 
     while heap:
+        f, g, _, (x, y), path = heapq.heappop(heap)
 
-        f, g, counter, (x, y), path = heapq.heappop(heap)
-        if (x, y) in visited:
-            continue
-
-        visited.add((x, y))
         visits[x][y] += 1
-
         if first[x][y] is None:
             first[x][y] = order
-
         last[x][y] = order
         order += 1
 
@@ -145,10 +141,13 @@ def astar(rows, cols, start, end, grid, htype):
 
         for dx, dy in DIRS:
             nx, ny = x + dx, y + dy
-            if 0 <= nx < rows and 0 <= ny < cols and grid[nx][ny] != 'X' and (nx, ny) not in visited:
+            if 0 <= nx < rows and 0 <= ny < cols and grid[nx][ny] != 'X':
                 new_g = g + elevation_cost(grid[x][y], grid[nx][ny])
-                h = heuristic((nx, ny), end, htype)
-                heapq.heappush(heap, (new_g + h, new_g, order, (nx, ny), path + [(nx, ny)]))
+                if (nx, ny) not in cost_so_far or new_g < cost_so_far[(nx, ny)]:
+                    cost_so_far[(nx, ny)] = new_g
+                    h = heuristic((nx, ny), end, htype)
+                    counter += 1
+                    heapq.heappush(heap, (new_g + h, new_g, counter, (nx, ny), path + [(nx, ny)]))
 
     return None, visits, first, last
 
