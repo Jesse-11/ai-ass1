@@ -1,7 +1,7 @@
 import sys
 import math
 import heapq
-from collections import deque
+from collections import deque heappop, heappush
 
 STUDENT_ID = 'a1851614'
 DEGREE = 'UG'
