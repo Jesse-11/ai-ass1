@@ -1,120 +1,276 @@
-#!/usr/bin/python3.10.6
+import sys
 import math
-from collections import deque
 import heapq
 
-STUDENT_ID = 'a1851614'
-DEGREE = 'UG'
+# Constants
+STUDENT_ID = 'a1234567'  # Replace with your actual student ID
+DEGREE = 'UG'  # Replace with 'PG' if you're a postgraduate student
 
-"""--------------------------Helper functions--------------------------"""
+def read_map(file_path):
 
-def parse_map(map_file):
-    with open(map_file, 'r') as f:
-        lines = [line.strip() for line in f if line.strip()]
-        rows, cols = map(int, lines[0].split())
-        start = tuple(map(int, lines[1].split()))
-        end = tuple(map(int, lines[2].split()))
-        grid = [line.split() for line in lines[3:3+rows]]
-    return {'rows': rows, 'cols': cols, 'start': start, 'end': end, 'grid': grid}
-
-
-def euclidean_heuristic(i, j, end_i, end_j):
-    return math.sqrt((i - end_i)**2 + (j - end_j)**2)
-
-def manhattan_heuristic(i, j, end_i, end_j):
-    return abs(i - end_i) + abs(j - end_j)
-
-def reconstruct_path(parents, end):
-    path = []
-    while end in parents:
-        path.append(end)
-        end = parents[end]
-    return list(reversed(path)) if path else None
-
-
-
-
-
-
-
-
-
-
-
-
-""""--------------------------Search functions--------------------------"""
-
-def search(map_data, algorithm, heuristic=None):
-    grid = map_data['grid']
-    start = map_data['start']
-    end = map_data['end']
-    rows, cols = map_data['rows'], map_data['cols']
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        
+    rows, cols = map(int, lines[0].strip().split())
+    start = tuple(map(int, lines[1].strip().split()))
+    start = (start[0] - 1, start[1] - 1)  # Convert to 0-indexed
+    end = tuple(map(int, lines[2].strip().split()))
+    end = (end[0] - 1, end[1] - 1)  # Convert to 0-indexed
     
-    if grid[start[0]-1][start[1]-1] == 'X' or grid[end[0]-1][end[1]-1] == 'X':
-        return None, [[0]*cols for _ in range(rows)], [[0]*cols for _ in range(rows)], [[0]*cols for _ in range(rows)]
+    # Parse map
+    map_data = []
+    for i in range(3, 3 + rows):
+        row = lines[i].strip().split()
+        map_data.append(row)
     
-    parents = {}
-    visit_count = [[0]*cols for _ in range(rows)]
-    first_visit = [[0]*cols for _ in range(rows)]
-    last_visit = [[0]*cols for _ in range(rows)]
-    counter = 1
+    return map_data, start, end, rows, cols
+
+
+
+
+def step_cost(map_data, current_pos, new_pos):
+
+    current_elev = int(map_data[current_pos[0]][current_pos[1]]) if map_data[current_pos[0]][current_pos[1]] != 'X' else 0
+    next_elev = int(map_data[next_pos[0]][next_pos[1]]) if map_data[next_pos[0]][next_pos[1]] != 'X' else 0
+
+    elev_diff = next_elev - current_elev
+    return 1 + max(0, elev_diff) 
+
+
+def calc_heuristic(current_pos, goal_pos, heuristic):
+
+    if heuristic == 'euclidean':
+        return math.sqrt((current_pos[0] - goal_pos[0])**2 + (current_pos[1] - goal_pos[1])**2)
+    else # if heuristic == manhattan
+        return abs(current_pos[0] - goal_pos[0]) + abs(current_pos[1] - goal_pos[1])
+
+
+
+
+
+
+
+def graph_search(map_data, start, end, rows, cols, algorithm, heuristic=None):
+
+    # setup of tracking ds
+    visit_count = [[0 for _ in range(cols)] for _ in range(rows)]
+    first_visit = [[0 for _ in range(cols)] for _ in range(rows)]
+    last_visit = [[0 for _ in range(cols)] for _ in range(rows)]
+    visit_order = 0
     
+
+    closed = set()
+    
+
     if algorithm == 'bfs':
-        q = deque([start])
-        parents[start] = None
-        visit_count[start[0]-1][start[1]-1] = 1
-        first_visit[start[0]-1][start[1]-1] = counter
-        last_visit[start[0]-1][start[1]-1] = counter
-        counter += 1
-        
-        while q:
-            i, j = q.popleft()
-            if (i, j) == end: break
-            
-            for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
-                ni, nj = i+dx, j+dy
-                if 1<=ni<=rows and 1<=nj<=cols and grid[ni-1][nj-1] != 'X' and (ni, nj) not in parents:
-                    parents[(ni, nj)] = (i, j)
-                    q.append((ni, nj))
-                    visit_count[ni-1][nj-1] += 1
-                    if not first_visit[ni-1][nj-1]:
-                        first_visit[ni-1][nj-1] = counter
-                    last_visit[ni-1][nj-1] = counter
-                    counter += 1
-                    
-    elif algorithm in ['ucs', 'astar']:
-        heap = [(0, 0, start, 0)]
-        g_values = {start: 0}
-        parents[start] = None
-        visit_count[start[0]-1][start[1]-1] = 1
-        first_visit[start[0]-1][start[1]-1] = counter
-        last_visit[start[0]-1][start[1]-1] = counter
-        counter += 1
-        
-        while heap:
-            _, _, (i, j), g = heapq.heappop(heap)
-            if (i, j) == end: break
-            if g > g_values.get((i, j), float('inf')): continue
-            
-            for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
-                ni, nj = i+dx, j+dy
-                if 1<=ni<=rows and 1<=nj<=cols and grid[ni-1][nj-1] != 'X':
-                    curr_e = int(grid[i-1][j-1])
-                    next_e = int(grid[ni-1][nj-1])
-                    cost = g + 1 + max(0, next_e - curr_e)
-                    
-                    if cost < g_values.get((ni, nj), float('inf')):
-                        g_values[(ni, nj)] = cost
-                        parents[(ni, nj)] = (i, j)
-                        priority = cost
-                        if algorithm == 'astar':
-                            priority += heuristic(ni, nj, end[0], end[1])
-                        heapq.heappush(heap, (priority, counter, (ni, nj), cost))
-                        visit_count[ni-1][nj-1] += 1
-                        if not first_visit[ni-1][nj-1]:
-                            first_visit[ni-1][nj-1] = counter
-                        last_visit[ni-1][nj-1] = counter
-                        counter += 1
+        fringe = [(start, None, 0)]
+    else:  # UCS or A*
+        fringe = [(0, 0, start, None, 0)]
     
-    path = reconstruct_path(parents, end)
-    return path, visit_count, first_visit, last_visit
+    while fringe:
+        if algorithm == 'bfs':
+            state, parent, cost = fringe.pop(0)
+        else:  # UCS or A*
+            _, _, state, parent, cost = heapq.heappop(fringe)
+        
+        # Update visit tracking
+        row, col = state
+        visit_order += 1
+        visit_count[row][col] += 1
+        
+        if first_visit[row][col] == 0:
+            first_visit[row][col] = visit_order
+        last_visit[row][col] = visit_order
+        
+
+
+        if state == end:
+            # path reconstruction
+            path = []
+            current_state = state
+            
+            # from goal to start poosition
+            while current_state is not None:
+                path.append(current_state)
+                current_state = parent
+                
+                # Find the parant
+                if current_state is not None:
+ 
+                    for closed_state, closed_parent, _ in [(s, p, c) for (s, p, c) in closed if s == current_state]:
+                        parent = closed_parent
+                        break
+            
+            path.reverse()  # must reverse to switch from goal to start - strart to goal
+            return path, visit_count, first_visit, last_visit
+        
+        # If state is not in closed set
+        if state not in closed:
+  
+            closed.add((state, parent, cost))
+            
+            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+            
+            for direction in directions:
+                new_row = state[0] + direction[0]
+                new_col = state[1] + direction[1]
+                
+                # make sure new pos is valid. Hence not an obstacle or out of bounds. 
+                if (0 <= new_row < rows and 
+                    0 <= new_col < cols and 
+                    map_data[new_row][new_col] != 'X'):
+                    
+                    new_state = (new_row, new_col)
+                    
+                    # Calculate cost
+                    current_elevation = int(map_data[state[0]][state[1]]) if map_data[state[0]][state[1]] != 'X' else 0
+                    new_elevation = int(map_data[new_row][new_col]) if map_data[new_row][new_col] != 'X' else 0
+                    
+                    elevation_diff = new_elevation - current_elevation
+                    step_cost = 1 + max(0, elevation_diff)  # 1 + elevation diff if going uphill, otherwise just 1
+                    new_cost = cost + step_cost
+                    
+                    if algorithm == 'bfs':
+                        fringe.append((new_state, state, new_cost))
+                    elif algorithm == 'ucs':
+                        # For UCS, priority is the path cost
+                        heapq.heappush(fringe, (new_cost, visit_order, new_state, state, new_cost))
+                    elif algorithm == 'astar':
+                        h_cost = calculate_heuristic(new_state, end, heuristic)
+                        f_cost = new_cost + h_cost
+                        heapq.heappush(fringe, (f_cost, visit_order, new_state, state, new_cost))
+    
+    # No path found
+    return None, visit_count, first_visit, last_visit
+
+def print_output(map_data, path, visit_count, first_visit, last_visit, mode):
+
+    rows, cols = len(map_data), len(map_data[0])
+    
+
+    # if a path is not found
+    if path is None:
+        if mode == 'debug':
+            print("path:")
+            print("null")
+            
+            print("#visits:")
+            for i in range(rows):
+                for j in range(cols):
+                    if map_data[i][j] == 'X':
+                        print('X', end=' ')
+                    elif visit_count[i][j] == 0:
+                        print('.', end=' ')
+                    else:
+                        print(visit_count[i][j], end=' ')
+                print()
+            
+            print("first visit:")
+            for i in range(rows):
+                for j in range(cols):
+                    if map_data[i][j] == 'X':
+                        print('  X', end='')
+                    elif first_visit[i][j] == 0:
+                        print('  .', end='')
+                    else:
+                        print(f'{first_visit[i][j]:3d}', end='')
+                print()
+            
+            print("last visit:")
+            for i in range(rows):
+                for j in range(cols):
+                    if map_data[i][j] == 'X':
+                        print('  X', end='')
+                    elif last_visit[i][j] == 0:
+                        print('  .', end='')
+                    else:
+                        print(f'{last_visit[i][j]:3d}', end='')
+                print()
+        else:  # release mode
+            print("null")
+        return
+    
+
+
+
+
+
+    # Create path matrix
+    path_matrix = [[False for _ in range(cols)] for _ in range(rows)]
+    for pos in path:
+        path_matrix[pos[0]][pos[1]] = True
+    
+    # if a path is found, print in the different modes. 
+    if mode == 'debug':
+        print("path:")
+    for i in range(rows):
+        for j in range(cols):
+            if path_matrix[i][j]:
+                print('*', end=' ')
+            else:
+                print(map_data[i][j], end=' ')
+        print()
+    
+    if mode == 'debug':
+        # Print visit count
+        print("#visits:")
+        for i in range(rows):
+            for j in range(cols):
+                if map_data[i][j] == 'X':
+                    print('X', end=' ')
+                elif visit_count[i][j] == 0:
+                    print('.', end=' ')
+                else:
+                    print(visit_count[i][j], end=' ')
+            print()
+        
+        # first visit printing
+        print("first visit:")
+        for i in range(rows):
+            for j in range(cols):
+                if map_data[i][j] == 'X':
+                    print('  X', end='')
+                elif first_visit[i][j] == 0:
+                    print('  .', end='')
+                else:
+                    print(f'{first_visit[i][j]:3d}', end='')
+            print()
+        
+        # last visit printing
+        print("last visit:")
+        for i in range(rows):
+            for j in range(cols):
+                if map_data[i][j] == 'X':
+                    print('  X', end='')
+                elif last_visit[i][j] == 0:
+                    print('  .', end='')
+                else:
+                    print(f'{last_visit[i][j]:3d}', end='')
+            print()
+
+
+
+
+# Main function currently on debug. Working on testing my own test cases.
+"""
+def main():
+
+    
+    mode = sys.argv[1]
+    map_file = sys.argv[2]
+    algorithm = sys.argv[3]
+    heuristic = sys.argv[4] if len(sys.argv) > 4 else None
+    
+    # Read map
+    map_data, start, end, rows, cols = read_map(map_file)
+    
+    # Run search algorithm
+    path, visit_count, first_visit, last_visit = graph_search(map_data, start, end, rows, cols, algorithm, heuristic)
+    
+    # Print output
+    print_output(map_data, path, visit_count, first_visit, last_visit, mode)
+
+if __name__ == "__main__":
+    main()
+
+"""
